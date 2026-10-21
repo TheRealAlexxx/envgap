@@ -3,6 +3,8 @@
 Finds environment variables your code reads that `.env.example` doesn't mention,
 and the other way round. Zero dependencies, one command.
 
+![envgap output](screenshot.png)
+
 ```
 $ npx github:TheRealAlexxx/envgap .
 read by the code but missing from .env.example:
