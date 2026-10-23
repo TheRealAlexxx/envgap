@@ -1,9 +1,16 @@
 {
   "name": "envgap",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Find env vars your code reads that .env.example does not mention, and the reverse. Zero dependencies.",
-  "bin": { "envgap": "envgap.js" },
-  "scripts": { "test": "node --test" },
+  "bin": {
+    "envgap": "envgap.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
   "license": "MIT",
-  "files": ["envgap.js", "scan.js"]
+  "files": [
+    "envgap.js",
+    "scan.js"
+  ]
 }
