@@ -77,3 +77,25 @@ test('CLI argument handling', () => {
   assert.strictEqual(extra.status, 2);
   assert.match(extra.stderr, /unexpected extra argument/);
 });
+// POSIX-only: pipes the CLI through sh with a slow reader.
+test('piped --json output larger than 64 KiB is not truncated', { skip: process.platform === 'win32' }, () => {
+  const bin = path.join(__dirname, 'envgap.js');
+  const files = { '.env.example': 'EXISTING_VAR=\n' };
+  for (let i = 0; i < 600; i++) {
+    const n = String(i).padStart(4, '0');
+    files['src/f' + n + '.js'] = `const a = process.env.UNDOC_A_${n};\nconst b = process.env.UNDOC_B_${n};`;
+  }
+  const dir = project(files);
+  // Pipe through a slow reader so the 64 KiB pipe buffer fills while the
+  // writer still has output queued; process.exit would discard the rest.
+  // (A fast reader makes the old bug flaky instead of deterministic.)
+  const cmd = `node ${JSON.stringify(bin)} ${JSON.stringify(dir)} --json | (sleep 0.2; cat)`;
+  const piped = spawnSync('sh', ['-c', cmd], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 });
+  assert.ok(piped.stdout.length > 65536, `expected over 64 KiB of JSON, got ${piped.stdout.length}`);
+  const parsed = JSON.parse(piped.stdout); // a truncated stream fails here
+  assert.strictEqual(parsed.undocumented.length, 1200);
+  // The piped bytes must equal what a file redirect gets.
+  const out = path.join(dir, 'out.json');
+  spawnSync('node', [bin, dir, '--json'], { stdio: ['ignore', fs.openSync(out, 'w'), 'inherit'] });
+  assert.strictEqual(piped.stdout, fs.readFileSync(out, 'utf8'));
+});

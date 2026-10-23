@@ -65,5 +65,7 @@ function main(argv) {
   return undocumented.length ? 1 : 0;
 }
 
-if (require.main === module) process.exit(main(process.argv.slice(2)));
+// Set exitCode instead of calling process.exit: process.exit can cut off
+// stdout writes still queued for a pipe, truncating large output at 64 KiB.
+if (require.main === module) process.exitCode = main(process.argv.slice(2));
 module.exports = { compare, main };
