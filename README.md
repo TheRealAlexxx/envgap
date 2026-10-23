@@ -64,6 +64,13 @@ Runtime-to-build-time prefix mapping (an entrypoint that reads `ALLOW_EMBED`
 and writes `NEXT_PUBLIC_ALLOW_EMBED`) is not inferred. Framework config
 objects such as pydantic settings are not parsed; only direct reads count.
 
+Default detection covers the common inline forms: quoted string fallbacks in
+JS/TS, Python and Ruby, Python non-string fallbacks (numbers, names), and
+shell `${X:-...}`. It deliberately misses keyword-argument defaults
+(`default=...`), unquoted JS fallbacks (`|| 3000`, `?? otherVar`), and shell
+`${X-d}` without the colon; those reads report as bare. A `None`/`nil`
+fallback counts as bare, since unset then behaves like no default at all.
+
 ## Tests
 
 ```
