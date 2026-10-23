@@ -13,6 +13,16 @@ listed in .env.example but never read:
   OLD_FEATURE_FLAG
 ```
 
+A small demo project ships in the repo if you want to try it right now:
+
+```
+$ npx github:TheRealAlexxx/envgap examples/demo
+read by the code but missing from .env.example:
+  OLD_FEATURE                 src/server.js
+  PORT                        src/server.js
+  QUEUE_URL                   src/jobs.js
+```
+
 Exit code 1 when something is read but undocumented (so it works in CI), 0
 otherwise, 2 when there is no example file. `--json` for machine output.
 
@@ -32,7 +42,7 @@ It only sees explicit reads. A library that reads `POSTGRES_URL` or `AUTH_SECRET
 on its own will show up under "never read". Try it on
 `vercel/next-learn/dashboard/final-example`: all eight listed variables are read
 by libraries, not by the app code. Treat that section as a prompt to check, not
-an error. Dynamic names (`process.env[name]`) are not found.
+an error. Dynamic names (`process.env[name]`) and destructuring (`const {X} = process.env`) are not found.
 
 ## Tests
 
