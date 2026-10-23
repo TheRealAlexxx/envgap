@@ -52,3 +52,28 @@ test('CLI exit codes', () => {
   assert.strictEqual(spawnSync('node', [bin, project({ 'x.js': '' })]).status, 2);
   assert.deepStrictEqual(JSON.parse(spawnSync('node', [bin, bad, '--json'], { encoding: 'utf8' }).stdout).undocumented.map((u) => u.name), ['B']);
 });
+test('CLI argument handling', () => {
+  const bin = path.join(__dirname, 'envgap.js');
+  const help = spawnSync('node', [bin, '--help'], { encoding: 'utf8' });
+  assert.strictEqual(help.status, 0);
+  assert.match(help.stdout, /Usage: envgap/);
+  assert.match(help.stdout, /--json/);
+  const short = spawnSync('node', [bin, '-h'], { encoding: 'utf8' });
+  assert.strictEqual(short.status, 0);
+  assert.match(short.stdout, /Usage: envgap/);
+  const ver = spawnSync('node', [bin, '--version'], { encoding: 'utf8' });
+  assert.strictEqual(ver.status, 0);
+  assert.match(ver.stdout, /^envgap \d+\.\d+\.\d+/);
+  const bogus = spawnSync('node', [bin, '--bogus'], { encoding: 'utf8' });
+  assert.strictEqual(bogus.status, 2);
+  assert.match(bogus.stderr, /unknown option: --bogus/);
+  const missing = spawnSync('node', [bin, '/definitely/not/a/dir'], { encoding: 'utf8' });
+  assert.strictEqual(missing.status, 2);
+  assert.match(missing.stderr, /no such directory/);
+  const fileArg = spawnSync('node', [bin, path.join(__dirname, 'envgap.js')], { encoding: 'utf8' });
+  assert.strictEqual(fileArg.status, 2);
+  assert.match(fileArg.stderr, /not a directory/);
+  const extra = spawnSync('node', [bin, '.', '.'], { encoding: 'utf8' });
+  assert.strictEqual(extra.status, 2);
+  assert.match(extra.stderr, /unexpected extra argument/);
+});

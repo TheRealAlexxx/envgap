@@ -14,10 +14,37 @@ function compare(used, example) {
   return { undocumented, unused };
 }
 
+const VERSION = require('./package.json').version;
+
+const USAGE = `Usage: envgap [directory] [--json]
+
+Find environment variables the code reads that .env.example does not
+mention, and the reverse.
+
+Arguments:
+  directory        project root to scan (default: current directory)
+
+Options:
+  --json           machine-readable output
+  -h, --help       show this help
+  --version        show the version
+
+Exit codes: 0 = in sync, 1 = undocumented variables, 2 = usage error.`;
+
 function main(argv) {
-  const json = argv.includes('--json');
-  const args = argv.filter((a) => !a.startsWith('--'));
-  const dir = args[0] || '.';
+  let json = false;
+  let dir = null;
+  for (const a of argv) {
+    if (a === '-h' || a === '--help') { console.log(USAGE); return 0; }
+    if (a === '--version') { console.log('envgap ' + VERSION); return 0; }
+    if (a === '--json') { json = true; continue; }
+    if (a.startsWith('-')) { console.error('unknown option: ' + a + ' (try --help)'); return 2; }
+    if (dir !== null) { console.error('unexpected extra argument: ' + a); return 2; }
+    dir = a;
+  }
+  dir = dir || '.';
+  if (!fs.existsSync(dir)) { console.error('no such directory: ' + dir); return 2; }
+  if (!fs.statSync(dir).isDirectory()) { console.error('not a directory: ' + dir); return 2; }
   const exFile = ['.env.example', '.env.sample', '.env.template'].map((f) => path.join(dir, f)).find((f) => fs.existsSync(f));
   if (!exFile) { console.error('no .env.example, .env.sample or .env.template in ' + dir); return 2; }
   const used = scanDir(dir, dir);
