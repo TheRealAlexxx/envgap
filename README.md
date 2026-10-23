@@ -24,7 +24,7 @@ read by the code but missing from .env.example:
 ```
 
 Exit code 1 when something is read but undocumented (so it works in CI), 0
-otherwise, 2 when there is no example file. `--json` for machine output.
+otherwise, 2 when there is no example file. `--json` for machine output. Errors always print plain text to stderr and exit 2, even with `--json`.
 
 ## What it looks at
 
